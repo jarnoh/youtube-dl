@@ -14,6 +14,7 @@ from ..utils import (
     xpath_text,
 )
 
+import os
 
 class RuutuIE(InfoExtractor):
     _VALID_URL = r'''(?x)
@@ -144,10 +145,16 @@ class RuutuIE(InfoExtractor):
                         continue
                     processed_urls.append(video_url)
                     ext = determine_ext(video_url)
+
+                    # for premium videos, you need to pass GATLING_TOKEN as environment variable
+                    # to get token, login to ruutu.fi and run this in console:
+                    #    document.cookie.match("gatling_token=(.*?);")[1]
+                    gatling_token = os.environ.get('GATLING_TOKEN')
+
                     auth_video_url = url_or_none(self._download_webpage(
                         '%s/auth/access/v2' % self._API_BASE, video_id,
                         note='Downloading authenticated %s stream URL' % ext,
-                        fatal=False, query={'stream': video_url}))
+                        fatal=False, query={'stream': video_url, 'gatling_token': gatling_token}))
                     if auth_video_url:
                         processed_urls.append(auth_video_url)
                         video_url = auth_video_url
